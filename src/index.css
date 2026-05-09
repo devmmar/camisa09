@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Paleta da marca ── */
+/* #26c4c9  cyan primário   */
+/* #ffffff  branco           */
+/* #000000  preto            */
+
+/* ── Variáveis de tema ── */
+:root {
+  --color-bg:              #ffffff;
+  --color-surface:         #f5f5f5;
+  --color-surface-2:       #ebebeb;
+  --color-on-surface:      #000000;
+  --color-on-surface-muted: rgba(0, 0, 0, 0.45);
+  --color-border:          rgba(0, 0, 0, 0.1);
+  --brand:                 #26c4c9;
+  --brand-dim:             rgba(38, 196, 201, 0.15);
+  --brand-border:          rgba(38, 196, 201, 0.35);
+}
+
+.dark {
+  --color-bg:              #000000;
+  --color-surface:         #111111;
+  --color-surface-2:       #1a1a1a;
+  --color-on-surface:      #ffffff;
+  --color-on-surface-muted: rgba(255, 255, 255, 0.5);
+  --color-border:          rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-on-surface);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s, color 0.2s;
+  }
+}
+
+@layer components {
+  /* ── Botões ── */
+  .btn-primary {
+    @apply font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    background-color: #26c4c9;
+    color: #000000;
+  }
+  .btn-primary:hover { background-color: #1aa8ad; }
+
+  .btn-gold {
+    @apply font-bold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    background-color: #26c4c9;
+    color: #000000;
+  }
+  .btn-gold:hover { background-color: #1aa8ad; }
+
+  .btn-outline {
+    @apply border font-medium px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    border-color: var(--color-border);
+    color: var(--color-on-surface);
+  }
+  .btn-outline:hover { background-color: var(--color-surface-2); }
+
+  /* ── Card ── */
+  .card {
+    @apply rounded-2xl overflow-hidden transition-all duration-300;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+  }
+  .card:hover { border-color: var(--brand-border); }
+
+  /* ── Input ── */
+  .input-field {
+    @apply w-full rounded-lg px-4 py-3 transition-colors focus:outline-none;
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    color: var(--color-on-surface);
+  }
+  .input-field:focus { border-color: #26c4c9; box-shadow: 0 0 0 2px rgba(38,196,201,0.2); }
+  .input-field::placeholder { color: var(--color-on-surface-muted); }
+
+  /* ── Títulos ── */
+  .section-title {
+    @apply text-3xl md:text-4xl font-extrabold uppercase tracking-wider;
+  }
+}
+
+@layer utilities {
+  .text-gradient-brand {
+    background: linear-gradient(135deg, #26c4c9, #7fe8eb, #26c4c9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  /* alias antigo mantido para compatibilidade */
+  .text-gradient-gold { @apply text-gradient-brand; }
+
+  .text-muted    { color: var(--color-on-surface-muted); }
+  .bg-page       { background-color: var(--color-bg); }
+  .bg-surface    { background-color: var(--color-surface); }
+  .bg-surface-2  { background-color: var(--color-surface-2); }
+  .border-base   { border-color: var(--color-border); }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: #26c4c9; border-radius: 3px; }
