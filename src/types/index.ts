@@ -11,6 +11,21 @@ export type Review = Database['public']['Tables']['reviews']['Row']
 export type Coupon = Database['public']['Tables']['coupons']['Row']
 export type CartItem = Database['public']['Tables']['cart_items']['Row']
 export type Favorite = Database['public']['Tables']['favorites']['Row']
+export type SiteSetting = Database['public']['Tables']['site_settings']['Row']
+export type Testimonial = Database['public']['Tables']['testimonials']['Row']
+export type ManualSale = Database['public']['Tables']['manual_sales']['Row']
+
+export type PaymentStatus = ManualSale['payment_status']
+export type DeliveryStatus = ManualSale['delivery_status']
+export type SaleChannel = ManualSale['sale_channel']
+
+export interface SaleItem {
+  product_type: string
+  product_model: string
+  product_size: string
+  product_quantity: number
+  unit_price: number
+}
 
 export interface ProductWithImages extends Product {
   images: ProductImage[]

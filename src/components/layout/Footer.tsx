@@ -1,56 +1,117 @@
-﻿import { Link } from 'react-router-dom'
-import { MessageCircle, Mail } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Instagram, Youtube, MessageCircle } from 'lucide-react'
 import { Logo } from '../Logo'
+
+const INSTITUCIONAL = [
+  ['/sobre', 'Sobre nós'],
+  ['/contato', 'Política de privacidade'],
+  ['/contato', 'Trocas e devoluções'],
+  ['/contato', 'Termos de uso'],
+  ['/contato', 'Fale conosco'],
+]
+
+const AJUDA = [
+  ['/contato', 'Como comprar'],
+  ['/contato', 'Formas de pagamento'],
+  ['/contato', 'Prazos de entrega'],
+  ['/contato', 'Rastreamento'],
+  ['/contato', 'Perguntas frequentes'],
+]
+
+const CATEGORIAS = [
+  ['/catalogo?category=clubes-europeus', 'Clubes Europeus'],
+  ['/catalogo?category=clubes-brasileiros', 'Clubes Brasileiros'],
+  ['/catalogo?category=selecoes', 'Seleções'],
+  ['/catalogo?category=retro', 'Retro & Clássicas'],
+  ['/catalogo?category=versao-jogador', 'Versão Jogador'],
+]
 
 export function Footer() {
   return (
-    <footer className="border-t border-base mt-20 bg-surface-2">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
-            <Logo size="md" />
-            <p className="mt-4 text-muted text-sm max-w-xs">
-              Camisetas de futebol com estilo street. Para quem vive o jogo dentro e fora de campo.
-            </p>
-            <div className="flex gap-3 mt-4">
-              <a href="#" className="p-2 bg-surface hover:bg-surface-2 border border-base rounded-lg transition-colors font-bold text-xs leading-none flex items-center justify-center w-9 h-9">IG</a>
-              <a href="#" className="p-2 bg-surface hover:bg-surface-2 border border-base rounded-lg transition-colors"><MessageCircle size={18} /></a>
-              <a href="#" className="p-2 bg-surface hover:bg-surface-2 border border-base rounded-lg transition-colors"><Mail size={18} /></a>
+    <footer className="bg-[#0a0a0a] text-white mt-0">
+      {/* Main footer */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
+
+          {/* Institucional */}
+          <div>
+            <h4 className="font-display text-sm uppercase tracking-widest text-white mb-4">Institucional</h4>
+            <ul className="space-y-2">
+              {INSTITUCIONAL.map(([to, label]) => (
+                <li key={label}>
+                  <Link to={to} className="text-xs text-white/50 hover:text-[#26c4c9] transition-colors">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Ajuda */}
+          <div>
+            <h4 className="font-display text-sm uppercase tracking-widest text-white mb-4">Ajuda</h4>
+            <ul className="space-y-2">
+              {AJUDA.map(([to, label]) => (
+                <li key={label}>
+                  <Link to={to} className="text-xs text-white/50 hover:text-[#26c4c9] transition-colors">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Categorias */}
+          <div>
+            <h4 className="font-display text-sm uppercase tracking-widest text-white mb-4">Categorias</h4>
+            <ul className="space-y-2">
+              {CATEGORIAS.map(([to, label]) => (
+                <li key={label}>
+                  <Link to={to} className="text-xs text-white/50 hover:text-[#26c4c9] transition-colors">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Fale conosco */}
+          <div>
+            <h4 className="font-display text-sm uppercase tracking-widest text-white mb-4">Fale Conosco</h4>
+            <ul className="space-y-2 text-xs text-white/50">
+              <li>WhatsApp: (11) 93969-9999</li>
+              <li>Email: contato@camisa9.com.br</li>
+              <li className="pt-1">Seg à Sex: 09h às 18h</li>
+              <li>Sáb: 09h às 13h</li>
+            </ul>
+          </div>
+
+          {/* Formas de pagamento */}
+          <div>
+            <h4 className="font-display text-sm uppercase tracking-widest text-white mb-4">Formas de Pagamento</h4>
+            <div className="flex flex-wrap gap-2">
+              {['VISA', 'MC', 'ELO', 'PIX'].map(p => (
+                <div key={p} className="bg-white/10 border border-white/10 rounded px-2.5 py-1.5 text-xs font-bold text-white/70">
+                  {p}
+                </div>
+              ))}
             </div>
           </div>
-
-          <div>
-            <h4 className="font-semibold text-sm uppercase tracking-wider text-muted mb-4">Loja</h4>
-            <ul className="space-y-2">
-              {[
-                ['/catalogo', 'Catálogo'],
-                ['/catalogo?type=lancamentos', 'Lançamentos'],
-                ['/catalogo?type=promocoes', 'Promoções'],
-                ['/jogos', 'Jogos'],
-              ].map(([to, label]) => (
-                <li key={to}><Link to={to} className="text-sm text-muted hover:text-[#26c4c9] transition-colors">{label}</Link></li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-sm uppercase tracking-wider text-muted mb-4">Ajuda</h4>
-            <ul className="space-y-2">
-              {[
-                ['/sobre', 'Sobre nós'],
-                ['/contato', 'Contato'],
-                ['/contato', 'Trocas e Devoluções'],
-                ['/contato', 'Envios'],
-              ].map(([to, label]) => (
-                <li key={label}><Link to={to} className="text-sm text-muted hover:text-[#26c4c9] transition-colors">{label}</Link></li>
-              ))}
-            </ul>
-          </div>
         </div>
+      </div>
 
-        <div className="mt-8 pt-8 border-t border-base flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted">© {new Date().getFullYear()} Camisa 9. Todos os direitos reservados.</p>
-          <p className="text-xs text-muted">Feito com paixão pelo futebol</p>
+      {/* Bottom bar */}
+      <div className="border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Logo size="xs" />
+
+          <p className="text-xs text-white/30">© {new Date().getFullYear()} Camisa 9. Todos os direitos reservados.</p>
+
+          <div className="flex items-center gap-3">
+            <a href="#" className="p-2 text-white/40 hover:text-[#26c4c9] transition-colors rounded-lg hover:bg-white/5">
+              <Instagram size={17} />
+            </a>
+            <a href="#" className="p-2 text-white/40 hover:text-[#26c4c9] transition-colors rounded-lg hover:bg-white/5">
+              <Youtube size={17} />
+            </a>
+            <a href="#" className="p-2 text-white/40 hover:text-[#26c4c9] transition-colors rounded-lg hover:bg-white/5">
+              <MessageCircle size={17} />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
