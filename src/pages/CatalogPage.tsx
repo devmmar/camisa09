@@ -1,10 +1,16 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import { ProductGrid } from '../components/product/ProductGrid'
 import { useProducts } from '../hooks/useProducts'
 import { supabase } from '../lib/supabase'
 import type { Category, Team } from '../types'
+
+const TYPE_LABELS: Record<string, string> = {
+  lancamentos: 'Lançamentos',
+  promocoes: 'Promoções',
+  destaques: 'Destaques',
+}
 
 export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -18,11 +24,22 @@ export function CatalogPage() {
   const [categories, setCategories] = useState<Category[]>([])
 
   const type = searchParams.get('type') ?? ''
+  const categorySlug = searchParams.get('category') ?? ''
 
   useEffect(() => {
     supabase.from('teams').select('*').order('name').then(({ data }) => setTeams(data ?? []))
-    supabase.from('categories').select('*').order('name').then(({ data }) => setCategories(data ?? []))
+    supabase.from('categories').select('*').order('sort_order').then(({ data }) => setCategories((data as Category[]) ?? []))
   }, [])
+
+  // Resolver slug de categoria da URL → ID
+  useEffect(() => {
+    if (categorySlug && categories.length > 0) {
+      const found = categories.find(c => c.slug === categorySlug)
+      if (found) setSelectedCategory(found.id)
+    } else if (!categorySlug) {
+      setSelectedCategory('')
+    }
+  }, [categorySlug, categories])
 
   const { products, loading } = useProducts({
     search: search || undefined,
@@ -38,16 +55,27 @@ export function CatalogPage() {
   const filtered = products.filter(p => {
     if (priceMax && p.price > Number(priceMax)) return false
     if (selectedSize && !p.sizes?.includes(selectedSize)) return false
+    if (type === 'promocoes' && !p.original_price) return false
     return true
   })
 
   const activeFilterCount = [priceMax, selectedSize, selectedTeam, selectedCategory].filter(Boolean).length
+
+  // Título da página
+  const pageTitle = (() => {
+    if (categorySlug) {
+      const cat = categories.find(c => c.slug === categorySlug)
+      return cat?.name ?? 'Catálogo'
+    }
+    return type ? (TYPE_LABELS[type] ?? 'Catálogo') : 'Catálogo'
+  })()
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const params: Record<string, string> = {}
     if (search) params.q = search
     if (type) params.type = type
+    if (categorySlug) params.category = categorySlug
     setSearchParams(params)
   }
 
@@ -55,19 +83,14 @@ export function CatalogPage() {
     setPriceMax('')
     setSelectedSize('')
     setSelectedTeam('')
-    setSelectedCategory('')
-  }
-
-  const typeLabels: Record<string, string> = {
-    lancamentos: 'Lançamentos', promocoes: 'Promoções',
-    destaques: 'Destaques', selecoes: 'Seleções', clubes: 'Clubes',
+    if (!categorySlug) setSelectedCategory('')
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8">
-        <h1 className="section-title">{type ? typeLabels[type] ?? 'Catálogo' : 'Catálogo'}</h1>
-        <p className="text-muted mt-1">{loading ? '...' : `${filtered.length} produtos encontrados`}</p>
+        <h1 className="section-title">{pageTitle}</h1>
+        <p className="text-muted mt-1">{loading ? '...' : `${filtered.length} produto${filtered.length !== 1 ? 's' : ''} encontrado${filtered.length !== 1 ? 's' : ''}`}</p>
       </div>
 
       <div className="flex gap-3 mb-6">
@@ -80,7 +103,7 @@ export function CatalogPage() {
             placeholder="Buscar camisetas, times, seleções..."
           />
           {search && (
-            <button type="button" onClick={() => { setSearch(''); setSearchParams(type ? { type } : {}) }}
+            <button type="button" onClick={() => { setSearch(''); setSearchParams(type ? { type } : categorySlug ? { category: categorySlug } : {}) }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-[#26c4c9]">
               <X size={16} />
             </button>

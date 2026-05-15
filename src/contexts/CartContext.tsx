@@ -85,9 +85,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (error || !data) throw new Error('Cupom inválido ou expirado')
     if (data.expires_at && new Date(data.expires_at) < new Date()) throw new Error('Cupom expirado')
     if (data.max_uses && data.used_count >= data.max_uses) throw new Error('Cupom esgotado')
-    const discount = data.discount_type === 'percent'
+    if (data.min_order && total < data.min_order) {
+      throw new Error(`Este cupom exige pedido mínimo de R$ ${data.min_order.toFixed(2).replace('.', ',')}`)
+    }
+    const rawDiscount = data.discount_type === 'percent'
       ? (total * data.discount_value) / 100
       : data.discount_value
+    const discount = Math.min(rawDiscount, total)
     return { discount, type: data.discount_type }
   }
 

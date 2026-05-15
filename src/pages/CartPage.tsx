@@ -1,29 +1,37 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trash2, Plus, Minus, MessageCircle, Tag, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Trash2, Plus, Minus, MessageCircle, Tag, ArrowRight, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react'
 import { useCart } from '../contexts/CartContext'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 
 type Step = 'cart' | 'checkout'
 
 export function CartPage() {
+  const { user } = useAuth()
   const { items, total, removeItem, updateQuantity, applyCoupon, clearCart } = useCart()
   const [step, setStep] = useState<Step>('cart')
   const [couponCode, setCouponCode] = useState('')
-  const [discount, setDiscount] = useState(0)
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [couponError, setCouponError] = useState('')
   const [applyingCoupon, setApplyingCoupon] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
   const [notes, setNotes] = useState('')
 
+  const discount = appliedCoupon?.discount ?? 0
+  const finalTotal = Math.max(0, total - discount)
+
   async function handleApplyCoupon() {
     setCouponError('')
     setApplyingCoupon(true)
     try {
       const result = await applyCoupon(couponCode)
-      setDiscount(result.discount)
+      setAppliedCoupon({ code: couponCode, discount: result.discount })
     } catch (err) {
       setCouponError(err instanceof Error ? err.message : 'Cupom inválido')
     } finally {
@@ -31,20 +39,71 @@ export function CartPage() {
     }
   }
 
-  function handleWhatsApp() {
-    const itemsText = items.map(i =>
-      `• ${i.product.name} (${i.size}) x${i.quantity} = R$ ${(i.product.price * i.quantity).toFixed(2).replace('.', ',')}`
-    ).join('\n')
-    const finalTotal = (total - discount).toFixed(2).replace('.', ',')
-    const header = name ? `*Pedido de ${name}*\n${phone ? `Tel: ${phone}\n` : ''}${address ? `Endereço: ${address}\n` : ''}\n` : ''
-    const footer = notes ? `\nObservações: ${notes}\n` : ''
-    const msg = encodeURIComponent(
-      `${header}${itemsText}\n${footer}\n${discount > 0 ? `Desconto: -R$ ${discount.toFixed(2).replace('.', ',')}\n` : ''}*Total: R$ ${finalTotal}*`
-    )
-    window.open(`https://wa.me/5521979604258?text=${msg}`, '_blank')
-  }
+  async function handleFinalize() {
+    if (!user || !name || !phone) return
+    setSubmitError('')
+    setSubmitting(true)
 
-  const finalTotal = total - discount
+    try {
+      // 1. Criar pedido
+      const { data: order, error: orderErr } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          status: 'pending',
+          total: finalTotal,
+          discount,
+          coupon_code: appliedCoupon?.code ?? null,
+          notes: [address ? `Endereço: ${address}` : '', notes].filter(Boolean).join(' | ') || null,
+        })
+        .select()
+        .single()
+
+      if (orderErr) throw orderErr
+
+      // 2. Criar itens do pedido
+      const orderItems = items.map(i => ({
+        order_id: order.id,
+        product_id: i.product_id,
+        size: i.size,
+        quantity: i.quantity,
+        unit_price: i.product.price,
+      }))
+      const { error: itemsErr } = await supabase.from('order_items').insert(orderItems)
+      if (itemsErr) throw itemsErr
+
+      // 3. Incrementar uso do cupom
+      if (appliedCoupon?.code) {
+        const { data: couponRow } = await supabase
+          .from('coupons').select('used_count').eq('code', appliedCoupon.code).single()
+        if (couponRow) {
+          const c = couponRow as { used_count: number }
+          await supabase.from('coupons')
+            .update({ used_count: c.used_count + 1 } as never)
+            .eq('code', appliedCoupon.code)
+        }
+      }
+
+      // 4. Abrir WhatsApp com número do pedido
+      const itemsText = items.map(i =>
+        `• ${i.product.name} (${i.size}) x${i.quantity} = R$ ${(i.product.price * i.quantity).toFixed(2).replace('.', ',')}`
+      ).join('\n')
+      const header = `*Pedido #${order.id.slice(0, 8).toUpperCase()} — ${name}*\nTel: ${phone}\n${address ? `Endereço: ${address}\n` : ''}\n`
+      const footer = notes ? `\nObs: ${notes}\n` : ''
+      const msg = encodeURIComponent(
+        `${header}${itemsText}${footer}\n${discount > 0 ? `Desconto: -R$ ${discount.toFixed(2).replace('.', ',')}\n` : ''}*Total: R$ ${finalTotal.toFixed(2).replace('.', ',')}*`
+      )
+
+      // 5. Limpar carrinho apenas após sucesso
+      await clearCart()
+
+      window.open(`https://wa.me/5521979604258?text=${msg}`, '_blank')
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Erro ao registrar pedido. Tente novamente.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   if (!items.length) {
     return (
@@ -112,14 +171,32 @@ export function CartPage() {
           <div className="lg:col-span-1">
             <div className="card p-6 sticky top-24">
               <h3 className="font-bold mb-4">Resumo do pedido</h3>
-              <div className="flex gap-2 mb-2">
-                <input value={couponCode} onChange={e => setCouponCode(e.target.value.toUpperCase())} className="input-field text-sm py-2" placeholder="Código do cupom" />
-                <button onClick={handleApplyCoupon} disabled={applyingCoupon || !couponCode} className="btn-outline !px-3 !py-2 text-sm shrink-0 disabled:opacity-50">
-                  <Tag size={16} />
-                </button>
-              </div>
-              {couponError && <p className="text-red-500 text-xs mb-2">{couponError}</p>}
-              {discount > 0 && <p className="text-[#26c4c9] text-xs mb-3">Desconto de R$ {discount.toFixed(2).replace('.', ',')} aplicado!</p>}
+
+              {!appliedCoupon ? (
+                <>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      value={couponCode}
+                      onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                      className="input-field text-sm py-2"
+                      placeholder="Código do cupom"
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={applyingCoupon || !couponCode}
+                      className="btn-outline !px-3 !py-2 text-sm shrink-0 disabled:opacity-50"
+                    >
+                      {applyingCoupon ? <Loader2 size={16} className="animate-spin" /> : <Tag size={16} />}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-red-500 text-xs mb-2">{couponError}</p>}
+                </>
+              ) : (
+                <div className="flex items-center justify-between mb-3 bg-[#26c4c9]/10 border border-[#26c4c9]/20 rounded-lg px-3 py-2">
+                  <p className="text-[#26c4c9] text-xs font-semibold">Cupom {appliedCoupon.code} aplicado!</p>
+                  <button onClick={() => setAppliedCoupon(null)} className="text-muted hover:text-[#26c4c9] text-xs">Remover</button>
+                </div>
+              )}
 
               <div className="space-y-2 text-sm border-t border-base pt-4">
                 <div className="flex justify-between text-muted">
@@ -194,12 +271,21 @@ export function CartPage() {
                 </div>
               </div>
 
+              {submitError && (
+                <p className="text-red-500 text-xs mt-3 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                  {submitError}
+                </p>
+              )}
+
               <button
-                onClick={handleWhatsApp}
-                disabled={!name || !phone}
+                onClick={handleFinalize}
+                disabled={!name || !phone || submitting}
                 className="btn-primary w-full justify-center mt-4 py-4 disabled:opacity-50"
               >
-                <MessageCircle size={20} /> Finalizar pelo WhatsApp
+                {submitting
+                  ? <><Loader2 size={18} className="animate-spin" /> Registrando...</>
+                  : <><MessageCircle size={20} /> Finalizar pelo WhatsApp</>
+                }
               </button>
               <p className="text-center text-xs text-muted mt-2">Você será redirecionado para o WhatsApp</p>
 

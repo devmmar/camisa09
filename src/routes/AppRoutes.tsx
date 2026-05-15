@@ -19,6 +19,7 @@ import { ContactPage } from '../pages/ContactPage'
 import { GamesPage } from '../pages/GamesPage'
 import { SearchPage } from '../pages/SearchPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { ResetPasswordPage } from '../pages/ResetPasswordPage'
 
 // Admin
 import { AdminDashboard } from '../pages/admin/AdminDashboard'
@@ -26,6 +27,10 @@ import { AdminProducts } from '../pages/admin/AdminProducts'
 import { AdminProductForm } from '../pages/admin/AdminProductForm'
 import { AdminOrders } from '../pages/admin/AdminOrders'
 import { AdminCoupons } from '../pages/admin/AdminCoupons'
+import { AdminContent } from '../pages/admin/AdminContent'
+import { AdminTestimonials } from '../pages/admin/AdminTestimonials'
+import { AdminCategories } from '../pages/admin/AdminCategories'
+import { AdminSales } from '../pages/admin/AdminSales'
 
 export function AppRoutes() {
   return (
@@ -47,6 +52,9 @@ export function AppRoutes() {
           <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
         </Route>
 
+        {/* Reset de senha — acessível com o token do Supabase na URL */}
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
         {/* Protected */}
         <Route element={<ProtectedRoute />}>
           <Route path="/carrinho" element={<CartPage />} />
@@ -65,6 +73,10 @@ export function AppRoutes() {
           <Route path="/admin/produtos/:id/editar" element={<AdminProductForm />} />
           <Route path="/admin/pedidos" element={<AdminOrders />} />
           <Route path="/admin/cupons" element={<AdminCoupons />} />
+          <Route path="/admin/conteudo" element={<AdminContent />} />
+          <Route path="/admin/categorias" element={<AdminCategories />} />
+          <Route path="/admin/depoimentos" element={<AdminTestimonials />} />
+          <Route path="/admin/vendas" element={<AdminSales />} />
         </Route>
       </Route>
 

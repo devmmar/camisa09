@@ -20,7 +20,7 @@ export default {
         'border-base': 'var(--color-border)',
       },
       fontFamily: {
-        display: ['Impact', 'Haettenschweiler', 'Arial Narrow Bold', 'sans-serif'],
+        display: ['Bebas Neue', 'Impact', 'sans-serif'],
         body: ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {

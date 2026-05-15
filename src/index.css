@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -23,7 +23,7 @@
 }
 
 .dark {
-  --color-bg:              #000000;
+  --color-bg:              #0a0a0a;
   --color-surface:         #111111;
   --color-surface-2:       #1a1a1a;
   --color-on-surface:      #ffffff;
@@ -46,25 +46,33 @@
 @layer components {
   /* ── Botões ── */
   .btn-primary {
-    @apply font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    @apply font-bold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2 uppercase tracking-wider text-sm;
     background-color: #26c4c9;
     color: #000000;
   }
   .btn-primary:hover { background-color: #1aa8ad; }
 
   .btn-gold {
-    @apply font-bold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    @apply font-bold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2 uppercase tracking-wider text-sm;
     background-color: #26c4c9;
     color: #000000;
   }
   .btn-gold:hover { background-color: #1aa8ad; }
 
   .btn-outline {
-    @apply border font-medium px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    @apply border font-bold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2 uppercase tracking-wider text-sm;
     border-color: var(--color-border);
     color: var(--color-on-surface);
   }
   .btn-outline:hover { background-color: var(--color-surface-2); }
+
+  .btn-whatsapp {
+    @apply font-bold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 inline-flex items-center gap-2 uppercase tracking-wider text-sm;
+    background-color: transparent;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+  }
+  .btn-whatsapp:hover { background-color: rgba(255,255,255,0.08); }
 
   /* ── Card ── */
   .card {
@@ -86,7 +94,15 @@
 
   /* ── Títulos ── */
   .section-title {
-    @apply text-3xl md:text-4xl font-extrabold uppercase tracking-wider;
+    font-family: 'Bebas Neue', sans-serif;
+    @apply text-4xl md:text-5xl tracking-wider;
+    letter-spacing: 0.05em;
+  }
+
+  .display-title {
+    font-family: 'Bebas Neue', sans-serif;
+    @apply text-6xl md:text-8xl leading-none;
+    letter-spacing: 0.02em;
   }
 }
 
@@ -97,8 +113,8 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  /* alias antigo mantido para compatibilidade */
   .text-gradient-gold { @apply text-gradient-brand; }
+  .font-display { font-family: 'Bebas Neue', sans-serif; }
 
   .text-muted    { color: var(--color-on-surface-muted); }
   .bg-page       { background-color: var(--color-bg); }
@@ -108,6 +124,6 @@
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--color-bg); }
 ::-webkit-scrollbar-thumb { background: #26c4c9; border-radius: 3px; }

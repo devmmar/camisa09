@@ -1,6 +1,6 @@
-﻿import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Heart, ShoppingCart, Star } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { supabase } from '../../lib/supabase'
@@ -15,6 +15,7 @@ interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
   const { user } = useAuth()
   const { addItem } = useCart()
+  const navigate = useNavigate()
   const [favorited, setFavorited] = useState(false)
   const [addingToCart, setAddingToCart] = useState(false)
 
@@ -23,23 +24,49 @@ export function ProductCard({ product, className }: ProductCardProps) {
     ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : 0
 
+  // Buscar estado real de favorito ao montar
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('product_id', product.id)
+      .maybeSingle()
+      .then(({ data }) => setFavorited(!!data))
+  }, [user, product.id])
+
   async function toggleFavorite(e: React.MouseEvent) {
     e.preventDefault()
-    if (!user) return
-    setFavorited(v => !v)
-    if (favorited) {
-      await supabase.from('favorites').delete().eq('user_id', user.id).eq('product_id', product.id)
-    } else {
-      await supabase.from('favorites').insert({ user_id: user.id, product_id: product.id })
+    if (!user) { navigate('/login'); return }
+
+    const prev = favorited
+    setFavorited(!prev) // otimista
+
+    try {
+      if (prev) {
+        const { error } = await supabase
+          .from('favorites').delete().eq('user_id', user.id).eq('product_id', product.id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('favorites').insert({ user_id: user.id, product_id: product.id } as never)
+        if (error) throw error
+      }
+    } catch {
+      setFavorited(prev) // reverter em caso de erro
     }
   }
 
   async function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault()
+    if (!user) { navigate('/login'); return }
     if (!product.sizes?.length) return
     setAddingToCart(true)
     try {
       await addItem(product.id, product.sizes[0])
+    } catch {
+      // erro silencioso — o contexto pode exibir feedback
     } finally {
       setAddingToCart(false)
     }
@@ -68,19 +95,22 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
         {/* Actions */}
         <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {user && (
-            <button
-              onClick={toggleFavorite}
-              className={clsx('p-2 rounded-full backdrop-blur-sm transition-colors', favorited ? 'bg-[#26c4c9] text-black' : 'bg-surface/80 text-muted hover:bg-surface')}
-            >
-              <Heart size={16} fill={favorited ? 'currentColor' : 'none'} />
-            </button>
-          )}
+          <button
+            onClick={toggleFavorite}
+            className={clsx(
+              'p-2 rounded-full backdrop-blur-sm transition-colors',
+              favorited ? 'bg-[#26c4c9] text-black' : 'bg-surface/80 text-muted hover:bg-surface'
+            )}
+            title={favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+          >
+            <Heart size={16} fill={favorited ? 'currentColor' : 'none'} />
+          </button>
           {product.stock > 0 && (
             <button
               onClick={handleAddToCart}
               disabled={addingToCart}
-              className="p-2 bg-[#26c4c9] rounded-full text-black hover:brightness-90 transition-all"
+              className="p-2 bg-[#26c4c9] rounded-full text-black hover:brightness-90 transition-all disabled:opacity-50"
+              title="Adicionar ao carrinho"
             >
               <ShoppingCart size={16} />
             </button>
